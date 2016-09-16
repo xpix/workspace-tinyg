@@ -945,8 +945,8 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
             // http://jsfiddle.net/chilipeppr/gh45j/
             chilipeppr.load(
                 "com-chilipeppr-xyz",
-                // Lauer's new widget 8/16/15
-                "http://raw.githubusercontent.com/chilipeppr/widget-axes/master/auto-generated-widget.html", 
+                // Xpix's new widget 9/16/16
+                "http://raw.githubusercontent.com/xpix/widget-axes/master/auto-generated-widget.html", 
                 // Temporary widget from Danal
                 //"http://fiddle.jshell.net/Danal/vktco1y6/show/light/", 
                 // Lauer's original core widget
