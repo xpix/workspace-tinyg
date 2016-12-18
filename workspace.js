@@ -326,7 +326,7 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
             // com-chilipeppr-ws-autolevel
             chilipeppr.load(
                 "#com-chilipeppr-ws-autolevel",
-                "http://raw.githubusercontent.com/chilipeppr/widget-autolevel/master/auto-generated-widget.html",
+                "http://raw.githubusercontent.com/xpix/widget-autolevel/master/auto-generated-widget.html",
                 function() {
                     require(["inline:com-chilipeppr-widget-autolevel"], function(autolevel) {
                         autolevel.init();
