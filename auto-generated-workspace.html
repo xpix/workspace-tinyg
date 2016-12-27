@@ -14,17 +14,25 @@
     <script type='text/javascript' src="//i2dcui.appspot.com/js/require.js"></script>
 
     <style type='text/css'>
+.workspace-dropdown li {
+    padding: 6px 20px;
+}
+.btn-ws {
+    width:100%;
+    /*margin:6px 20px;*/
+}
 .zipwhip-button {
-    line-height:0px;
-    padding: 1px 2px;
+    /*line-height:0px;*/
+    /*padding: 1px 2px;*/
 }
 .zipwhip-recvtext-button {
-    height:22px;
+    /*height:22px;*/
 }
 .zipwhip {
     background: url('http://www.zipwhip.com/resources/images/favicon.ico') no-repeat top left;
     display: inline-block;
-    margin: 1px 0;
+    /*margin: 1px 0;*/
+    margin: -4px 5px;
     height: 16px;
     width: 16px;
     /* line-height:0px; */
@@ -44,9 +52,10 @@
     /* padding: 10px 15px; */
 }
 #com-chilipeppr-ws-gcode-dragdrop {
-    margin-right:6px;
+    /*margin-right:6px;*/
 }
 #com-chilipeppr-ws-gcode-hdr {
+    height:64px;
     margin-bottom:10px;
 }
 .panel {
@@ -437,6 +446,206 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
 
         loadWidgets: function(callback) {
             
+            // create a workspace object reference to this so inside the anonymous functions below
+            // the workspace can be referred to
+            var wsObj = this;
+
+            this.font2gcodeObj = function() {
+                return {
+                    name: "font2gcode",
+                    url: "http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html",
+                    id: "com-zipwhip-widget-font2gcode",
+                    btn: $('#com-chilipeppr-ws-menu .font2gcode-button'),
+                    div: $('#com-chilipeppr-ws-font2gcode'),
+                    instance: null,
+                    init: function() {
+                        this.btn.click(this.toggle.bind(this));
+                        
+                        // do NOT dynamically load this one since it has a pubsub that's key to get called
+                        // and in future may register for drag/drop events for .txt files  
+                        this.load();
+                        
+                        // we need to subscribe to the /didDrop signal of this widget so we know to show it
+                        //chilipeppr.subscribe("/" + this.id + "/didDrop", this, this.show);
+                        console.log("done instantiating " + this.name + " add-on widget");
+                    },
+                    load: function(callback) {
+                        var that = this;
+                        chilipeppr.load(
+                          this.div.prop("id"),
+                          this.url,
+                          function() {
+                            // Callback after widget loaded into #myDivWidgetRecvtext
+                            // Now use require.js to get reference to instantiated widget
+                            cprequire(
+                              ["inline:" + that.id], // the id you gave your widget
+                              function(myObjWidget) {
+                                // Callback that is passed reference to the newly loaded widget
+                                console.log(that.name + " just got loaded.", myObjWidget);
+                                //myObjWidget.init(myObjWidget.activate.bind(myObjWidget));
+                                myObjWidget.init();
+                                //myObjWidget.activate();
+                                that.instance = myObjWidget;
+                                if (callback) callback(that.instance);
+                              }
+                            );
+                          }
+                        );
+                    },
+                    toggle: function() {
+                        if (this.div.hasClass("hidden")) {
+                            // unhide
+                            this.show();
+                        }
+                        else {
+                            this.hide();
+                        }
+                    },
+                    show: function() {
+                        this.div.removeClass("hidden");
+                        this.btn.addClass("active");
+    
+                        console.log("got show for " + this.name + ", this:", this, "wsObj:", wsObj);
+                        
+                        // see if instantiated already
+                        // if so, just activate
+                        if (this.instance != null) {
+                            console.log("activating " + this.name + " instead of re-instantiating cuz already created");
+                            this.instance.activate();
+                            //if (callback) callback(this.instance);
+                        }
+                        else {
+                            // otherwise, dynamic load
+                            console.log(this.name + " appears to not be instantiated, let us load it from scratch")
+                            
+                        }
+                        $(window).trigger('resize');
+                    },
+                    hide: function() {
+                        this.div.addClass("hidden");
+                        this.btn.removeClass("active");
+                        
+                        console.log("got hide for " + this.name + ". this:", this, "wsObj:", wsObj);
+                        
+                        if (this.instance != null) {
+                            this.instance.unactivate();
+                        }
+                        $(window).trigger('resize');
+                    }
+                };
+            }();
+            this.font2gcodeObj.init();
+            //End Font2Gcode
+
+            this.svg2gcodeObj = function() {
+                return {
+                    name: "svg2gcode",
+                    url: "http://raw.githubusercontent.com/chilipeppr/widget-svg2gcode/master/auto-generated-widget.html",
+                    id: "com-zipwhip-widget-svg2gcode",
+                    btn: $('#com-chilipeppr-ws-menu .svg2gcode-button'),
+                    div: $('#com-chilipeppr-ws-svg2gcode'),
+                    instance: null,
+                    init: function() {
+                        this.btn.click(this.toggle.bind(this));
+                        
+                        // do NOT dynamically load this one since it registers for drag/drop events for .svg files  
+                        this.load();
+                        
+                        // we need to subscribe to the /didDrop signal of this widget so we know to show it
+                        chilipeppr.subscribe("/" + this.id + "/didDrop", this, this.show);
+                        console.log("done instantiating " + this.name + " add-on widget");
+                    },
+                    load: function(callback) {
+                        var that = this;
+                        chilipeppr.load(
+                          this.div.prop("id"),
+                          this.url,
+                          function() {
+                            // Callback after widget loaded into #myDivWidgetRecvtext
+                            // Now use require.js to get reference to instantiated widget
+                            cprequire(
+                              ["inline:" + that.id], // the id you gave your widget
+                              function(myObjWidget) {
+                                // Callback that is passed reference to the newly loaded widget
+                                console.log(that.name + " just got loaded.", myObjWidget);
+                                //myObjWidget.init(myObjWidget.activate.bind(myObjWidget));
+                                myObjWidget.init();
+                                //myObjWidget.activate();
+                                that.instance = myObjWidget;
+                                if (callback) callback(that.instance);
+                              }
+                            );
+                          }
+                        );
+                    },
+                    toggle: function() {
+                        if (this.div.hasClass("hidden")) {
+                            // unhide
+                            this.show();
+                        }
+                        else {
+                            this.hide();
+                        }
+                    },
+                    show: function() {
+                        this.div.removeClass("hidden");
+                        this.btn.addClass("active");
+    
+                        console.log("got show for " + this.name + ", this:", this, "wsObj:", wsObj);
+                        
+                        // see if instantiated already
+                        // if so, just activate
+                        if (this.instance != null) {
+                            console.log("activating " + this.name + " instead of re-instantiating cuz already created");
+                            this.instance.activate();
+                            //if (callback) callback(this.instance);
+                        }
+                        else {
+                            // otherwise, dynamic load
+                            console.log(this.name + " appears to not be instantiated, let us load it from scratch")
+                            
+                        }
+                        $(window).trigger('resize');
+                    },
+                    hide: function() {
+                        this.div.addClass("hidden");
+                        this.btn.removeClass("active");
+                        
+                        console.log("got hide for " + this.name + ". this:", this, "wsObj:", wsObj);
+                        
+                        if (this.instance != null) {
+                            this.instance.unactivate();
+                        }
+                        $(window).trigger('resize');
+                    }
+                };
+            }();
+            this.svg2gcodeObj.init();
+            //End SVG2Gcode
+            
+            // Inject the Font2Gcode widget
+            /*
+            $('<div class="zhigh" id="com-chilipeppr-ws-font2gcode"></div>')
+                .insertAfter('#com-chilipeppr-ws-zipwhip-recvtext');
+
+            chilipeppr.load(
+              "#com-chilipeppr-ws-font2gcode",
+              "http://raw.githubusercontent.com/chilipeppr/widget-font2gcode/master/auto-generated-widget.html",
+              function() {
+                // Callback after widget loaded into #myDivComZipwhipWidgetFont2gcode
+                // Now use require.js to get reference to instantiated widget
+                cprequire(
+                  ["inline:com-zipwhip-widget-font2gcode"], // the id you gave your widget
+                  function(myObjComZipwhipWidgetFont2gcode) {
+                    // Callback that is passed reference to the newly loaded widget
+                    console.log("Widget / Font2Gcode just got loaded.", myObjComZipwhipWidgetFont2gcode);
+                    //myObjComZipwhipWidgetFont2gcode.init();
+                  }
+                );
+              }
+            );
+            */
+
             // Zipwhip texting
             // com-chilipeppr-ws-zipwhip
             chilipeppr.load(
@@ -467,7 +676,7 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
             // Zipwhip Recieve Text widget
             // Dynamically load the Zipwhip Recieve Text widget, i.e. wait til user clicks on the button
             // first time.
-            this.zipwhipRecvTextObj = {
+            wsObj.zipwhipRecvTextObj = {
                 zipwhipRecvTextBtn: null,
                 zipwhipRecvTextDiv: null,
                 zipwhipRecvTextInstance: null,
@@ -493,12 +702,14 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
                     this.zipwhipRecvTextDiv.removeClass("hidden");
                     this.zipwhipRecvTextBtn.addClass("active");
 
+                    console.log("got showzipwhipRecvText. this:", this, "wsObj:", wsObj);
+                    
                     // see if instantiated already
                     // if so, just activate
                     if (this.zipwhipRecvTextInstance != null) {
                         console.log("activating zipwhip recv text instead of re-instantiating cuz already created")
                         this.zipwhipRecvTextInstance.activateWidget();
-                        if (callback) callback();
+                        if (callback) callback(this.zipwhipRecvTextInstance);
                     }
                     else {
                         // otherwise, dynamic load
@@ -516,7 +727,8 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
                                 // Callback that is passed reference to the newly loaded widget
                                 console.log("Widget / Zipwhip Receive Text just got loaded.", myObjWidgetRecvtext);
                                 myObjWidgetRecvtext.init();
-                                if (callback) callback();
+                                that.zipwhipRecvTextInstance = myObjWidgetRecvtext;
+                                if (callback) callback(that.zipwhipRecvTextInstance);
                               }
                             );
                           }
@@ -527,13 +739,16 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
                 hidezipwhipRecvText: function() {
                     this.zipwhipRecvTextDiv.addClass("hidden");
                     this.zipwhipRecvTextBtn.removeClass("active");
+                    
+                    console.log("got hidezipwhipRecvText. this:", this, "wsObj:", wsObj);
+                    
                     if (this.zipwhipRecvTextInstance != null) {
                         this.zipwhipRecvTextInstance.unactivateWidget();
                     }
                     $(window).trigger('resize');
                 },
             };
-            this.zipwhipRecvTextObj.init();
+            wsObj.zipwhipRecvTextObj.init();
             //End Zipwhip Receive Text
             
             // Auto-Leveller
@@ -1046,6 +1261,8 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
                         chilipeppr.load(
                             "#com-chilipeppr-ws-superTouchplate",
                             "http://raw.githubusercontent.com/PyroAVR/widget-super-touchplate/master/auto-generated-widget.html",
+
+                            // "http://raw.githubusercontent.com/PyroAVR/widget-super-touchplate/tabs/auto-generated-widget.html",
                             function() {
                                 require(["inline:com-chilipeppr-widget-super-touchplate"], function(superTouchPlate) {
                                     that.superTouchPlateInstance = superTouchPlate;
@@ -1072,6 +1289,7 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
             this.superTouchPlateObj.init();
             //End Super Touch Plate
             
+
 
             // Arduino / Atmel Firmware Programmer
             // FIDDLE http://jsfiddle.net/chilipeppr/qcduvhkh/11/
@@ -1303,6 +1521,27 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
             }); //End WebRTC Client
             */
 
+            /* For testing. Load RPM Sensor */
+            // com-chilipeppr-ws-rpmsensor
+            /*
+            chilipeppr.load(
+              "#com-chilipeppr-ws-rpmsensor",
+              "http://raw.githubusercontent.com/chilipeppr/widget-rpmsensor/master/auto-generated-widget.html",
+              function() {
+                // Callback after widget loaded into #myDivWidgetRpmsensor
+                // Now use require.js to get reference to instantiated widget
+                cprequire(
+                  ["inline:com-chilipeppr-widget-rpmsensor"], // the id you gave your widget
+                  function(myObjWidgetRpmsensor) {
+                    // Callback that is passed reference to the newly loaded widget
+                    console.log("Widget / Template just got loaded.", myObjWidgetRpmsensor);
+                    myObjWidgetRpmsensor.init();
+                  }
+                );
+              }
+            );
+            */
+
         },
         //end loadWidgets
 
@@ -1349,6 +1588,45 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
                                     </div>
                                 </div>
 
+                                <div id="com-chilipeppr-ws-gcode-dragdrop" xstyle="margin-right:6px;" class="pull-left"></div>
+                                
+                                <div class="dropdown pull-left">
+                                  <button class="btn btn-xs btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                    Widgets
+                                    <span class="caret"></span>
+                                  </button>
+                                  <ul class="dropdown-menu workspace-dropdown" aria-labelledby="dropdownMenu1">
+                                    <!--<li><a href="#">Action</a></li>-->
+                                    <!--<li><a href="#">Another action</a></li>-->
+                                    <!--<li><a href="#">Something else here</a></li>-->
+                                    <!--<li role="separator" class="divider"></li>-->
+                                    <!--<li><a href="#">Separated link</a></li>-->
+                                    
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default zipwhip-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Get a text sent to you when your CNC job is completed." data-trigger="hover" data-delay="100"><span class="zipwhip"></span>Send Text on Job Done</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default zipwhip-recvtext-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Login to Zipwhip to receive texts and start a CNC job when the text is received." data-trigger="hover" data-delay="100"><span class="zipwhip"></span>Recv Text to Trigger</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default autolevel-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Allows you to auto-level your PCB before milling. Most raw PCB boards have a slight warpage. This widget lets you probe the warpage and then it auto-scales your Gcode to match the warpage so you get very clean/predictable z-positions in your milling job."
+                                    data-trigger="hover" data-delay="100">Auto-Level</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default macro-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Run a macro." data-trigger="hover" data-delay="100">Macro</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default jscut-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Load file from JSCut" data-trigger="hover" data-delay="100">JScut</button></li>
+                                    <!--<li><button type="button" class="btn-ws btn btn-xs btn-default lasersolder-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Laser Solderer" data-trigger="hover" data-delay="100">Laser Solder</button></li>-->
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default eagle-button" data-container="body" data-toggle="popover" data-placement="auto" xdata-content="Laser Solderer" data-trigger="hover" data-delay="100">Eagle BRD Import</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default gpio-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="GPIO Server by Ben Delarre. Allows you to control your GPIO ports on a Raspberry Pi or Beagle Bone Black to toggle on/off hardware components. For example, you could toggle a fan on/off via GPIO."
+                                    data-trigger="hover" data-delay="100">GPIO</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default shuttlexpress-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="ShuttleXpress Jog Dial." data-trigger="hover" data-delay="100">ShuttleXpress</button></li>
+    
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default touchplate-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Use a touch plate to easily figure out your Z zero of your workpiece and set it." data-trigger="hover"
+                                    data-delay="100">Touch Plate</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default superTouchplate-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="XYZ touch plate. Use a touch plate to figure out your X zero, Y zero, and Z zero of your workpiece." data-trigger="hover"
+                                    data-delay="100">Super Touch Plate</button></li>
+    
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default programmer-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Program your Arduino or Atmel chip directly from ChiliPeppr." data-trigger="hover" data-delay="100">Arduino / Atmel Firmware Uploader</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default svg2gcode-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Import an SVG file to Gcode" data-trigger="hover" data-delay="100">SVG Import</button></li>
+                                    <li><button type="button" class="btn-ws btn btn-xs btn-default font2gcode-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Create Gcode from text" data-trigger="hover" data-delay="100">Font2Gcode</button></li>
+                                
+                                    
+                                  </ul>
+                                </div>
+                                
                                 <div id="com-chilipeppr-ws-gcode-dragdrop" style="margin-right:6px;" class=""></div>
                                 <button type="button" class="btn btn-xs btn-default zipwhip-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Get a text sent to you when your CNC job is completed." data-trigger="hover" data-delay="100"><span class="zipwhip"></span></button>
                                 <button type="button" class="btn btn-xs btn-default zipwhip-recvtext-button" data-container="body" data-toggle="popover" data-placement="auto" data-content="Login to Zipwhip to receive texts and start a CNC job when the text is received." data-trigger="hover" data-delay="100"><span class="zipwhip"></span><div style="float:left;">Recv</div></button>
@@ -1372,6 +1650,12 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
                             </div>
 
                         </div>
+                        <!-- SVG2Gcode -->
+                        <div class="zhigh hidden" id="com-chilipeppr-ws-svg2gcode"></div>
+
+                        <!-- Font2Gcode -->
+                        <div class="zhigh hidden" id="com-chilipeppr-ws-font2gcode"></div>
+                        
                         <!-- Zipwhip Text Messaging -->
                         <div class="zhigh hidden" id="com-chilipeppr-ws-zipwhip"></div>
                         
@@ -1401,6 +1685,9 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
 
                         <!-- Touch Plate -->
                         <div class="zhigh hidden" id="com-chilipeppr-ws-touchplate">Touch Plate Here</div>
+                        
+                        <!-- Super Touch Plate -->
+                        <div class="zhigh hidden" id="com-chilipeppr-ws-superTouchplate">Super Touch Plate Here</div>
 
                         <!-- Super Touch Plate -->
                         <div class="zhigh hidden" id="com-chilipeppr-ws-superTouchplate">Super Touch Plate Here</div>
@@ -1416,8 +1703,15 @@ cpdefine("inline:com-chilipeppr-workspace-tinyg", ["chilipeppr_ready"], function
                     <!-- 3D Viewer -->
                     <div class="widget col-xs-6">
                         <div class="">
-                            <div id="com-chilipeppr-3dviewer-controlpanel" style=""></div>
+                            <table><tr><td>
+                                <div id="com-chilipeppr-3dviewer-controlpanel" style=""></div>
+                            </td></tr>
+                            <tr><td>
+                                <div id="com-chilipeppr-ws-rpmsensor" style="padding: 10px 10px;" class="hidden"></div>
+                            </td></tr>
+                            </table>
                         </div>
+                        
                     </div>
                     <div class="col-xs-3 nopadding">
                         <!-- XYZ -->
